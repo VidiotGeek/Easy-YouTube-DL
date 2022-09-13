@@ -71,7 +71,7 @@ if ! command -v youtube-dl &> /dev/null ; then
   else
     echo "youtube-dl could not be found. Installation requires admin privileges."
     read -p "Would you like to download and install it? (yes/no): " "get_youtube_dl"
-    if ! command -v curl &> /dev/null ;  then
+    if ! command -v curl &> /dev/null ; then
         # We can't use curl to install.
         if ! command -v wget &> /dev/null ; then
           # We also can't use wget to install.
@@ -106,10 +106,10 @@ if ! command -v youtube-dl &> /dev/null ; then
     case "$get_youtube_dl" in
       y|Y|yes|Yes|YES) echo "Proceeding..."
         if -w /usr/local/bin ; then
-            sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
-          else
-            echo "We cannot write to /usr/local/bin"
-            exit 0
+          sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
+        else
+          echo "We cannot write to /usr/local/bin"
+          exit 0
         fi
         ;;
       *) exit 0
