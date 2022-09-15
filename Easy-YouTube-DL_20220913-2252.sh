@@ -41,111 +41,91 @@
 ###################################################################################
 ###################################################################################
 
-# Define ANSI color code variables
-NOCOLOR=$'\e[0m'
-WHITE=$'\e1;37m'
-GRAY=$'\e[0;37m'
-RED=$'\e[0;31m'
-YELLOW=$'\e[0;33m'
-BLUE=$'\e[1;34m'
-GREEN=$'\e[0;32m'
-CYAN=$'\e[0;36m'
-PURPLE=$'\e[0;35m'
-YINVERT=$'\e[43;30m'
+# Clear the screen and print system info just for funsies. Will probably delete later.
+clear
+printf '\n\e[3;35m%-6s\a\e[m\n' "=============================== SYSTEM INFO ==================================" ;
+printf "System Version:\t\t $(uname -srm) \n"
+printf "Current Date/Time:\t $(date) \n"
+printf "Current Directory:\t $(pwd) \n"
+printf '\n\e[3;35m%-6s\a\e[m\n' "==============================================================================" ;
+echo
 
-# Define URL variables for tricky printf formatting.
-YTCOM='youtube.com'
-YTBE='youtu.be'
+#The farther I went down the path of writing everything in line, it seems like
+#it might be easier and fewer lines of code to run all my tests ahead of time, save the
+#results into variables, then also break each step out into a function... TBD
 
 
-function test_youtube_dl () {
-	if ! command -v youtube-dl &> /dev/null ; then
-	  # We don't have it. Do we have Python as a requirement?
-		$test_python
-	fi
-}
-
-function test_python () {
-	if ! command -v python &> /dev/null ;  then
-    # We also don't have python. Prompt for Python install.
+# Test if youtube-dl is in $PATH
+if ! command -v youtube-dl &> /dev/null ; then
+  # We don't have it. Do we have Python as a requirement?
+  if ! command -v python &> /dev/null ;  then
+    # We also don't have python. Prompt for install.
     echo "Sorry, Python 2.6 or later is a requirement for youtube-dl and this system doesn't have it"
     read -p "Do you want to install it from www.python.org and try again? (yes/no): " "get_python"
     case $get_python in
       y|Y|yes|Yes|YES) open "https://www.python.org/downloads/"
         ;;
-      *) exit 0
+      *) exit
         ;;
     esac
-	else
-		# We've confirmed Python is present. Can we write to the default install location?
-		if -w /usr/local/bin ; then
-    	echo "Sorry, youtube-dl could not be found. Would you like to download and install it?"
-    	read -p "(yes/no): " "get_youtube_dl"
-			case "$get_youtube_dl" in
-				y|Y|yes|Yes|YES) echo "Proceeding..."
-					$test_install_methods
-					;;
-				*) exit 0
-					;;
-				esac
-			else
-				echo "Sorry, the user $(whoami) is not able to write to the install location at /usr/local/bin."
-		fi
-	fi
-}
+  else
+    echo "youtube-dl could not be found. Installation requires admin privileges."
+    read -p "Would you like to download and install it? (yes/no): " "get_youtube_dl"
+    if ! command -v curl &> /dev/null ; then
+        # We can't use curl to install.
+        if ! command -v wget &> /dev/null ; then
+          # We also can't use wget to install.
+            if ! command -v pip &> /dev/null ; then
+            # We don't even have pip which should have come with Python when installed?
+            # Abandon all hope.
+                exit 0
+            else
+              case "$get_youtube_dl" in
+                y|Y|yes|Yes|YES) echo "Proceeding..."
+                  sudo pip install --upgrade youtube_dl
+                  ;;
+                *) exit 0
+                  ;;
+              esac
+            fi
+        else
+          case "$get_youtube_dl" in
+            y|Y|yes|Yes|YES) echo "Proceeding..."
+              if -w /usr/local/bin ; then
+                sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
+              else
+                echo "We cannot write to /usr/local/bin"
+                exit 0
+              fi
+              ;;
+            *) exit 0
+              ;;
+          esac
+        fi
+      else
+    case "$get_youtube_dl" in
+      y|Y|yes|Yes|YES) echo "Proceeding..."
+        if -w /usr/local/bin ; then
+          sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
+        else
+          echo "We cannot write to /usr/local/bin"
+          exit 0
+        fi
+        ;;
+      *) exit 0
+        ;;
+    esac
+  fi
+fi
 
-function test_install_methods () {
-	if ! command -v brew &> /dev/null; then
-		# We don't have Homebrew as the easiest install option.
-		if ! command -v curl &> /dev/null ; then
-			# We can't use curl to install.
-				if ! command -v wget &> /dev/null ; then
-					# We also can't use wget to install.
-						if ! command -v pip &> /dev/null ; then
-							printf '%s\n' "Sorry, we seem to have none of four possible install methods."
-							printf '%s\n' "Please see additional info at $GREEN https://yt-dl.org/"
-							exit 0
-						else
-							$install_ytdl_pip
-						fi
-					else
-						$install_ytdl_wget
-					fi
-				else
-					$install_ytdl_curl
-			fi
-		else
-			$install_ytdl_brew
-	fi
-}
-
-function install_ytdl_brew () {
-	# Easiest alternative install method is Homebrew, which we've confirmed is present.
-	brew install youtube-dl
-}
-
-function install_ytdl_curl () {
-	# First recommended install method is curl, which we've confirmed is present.
-	sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
-}
-
-function install_ytdl_wget () {
-	# We didn't have curl, proceding with wget as second recommended install method.
-	sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
-}
-
-function install_ytdl_pip () {
-	# We did not have curl or wget, proceeding with pip as third recommended install method.
-	sudo pip install --upgrade youtube-dl
-}
-
-# Save file to the desktop, because your download folder is probably also cluttered.
 cd ~/Desktop
-clear
-printf '\e[3;32m%-6s\a\e[m\n' "============================= Easy YouTube-DL ================================="
-printf '%s\n' "Please paste the YouTube URL you would like to download below."
-printf '%s\n\n' "Must be \"$RED$YTCOM$NOCOLOR\", not \"$RED$YTBE$NOCOLOR\". The file will be saved to $BLUE$HOME/Desktop$NOCOLOR."
-printf '%s' $YELLOW "URL:$NOCOLOR "
-read link_to_download
-printf '\n\e[3;32m%-6s\a\e[m\n' "==============================================================================="
+# Save file to the desktop, because your download folder is probably also cluttered.
+printf '\n\e[3;35m%-6s\a\e[m\n' "============================= Easy YouTube-DL =================================" ;
+echo "Please paste the YouTube URL you would like to download below."
+echo "Must be "youtube.com", not "youtu.be". The file will be saved to ~/Desktop"
+echo
+read -p "URL: " "link_to_download"
+echo
+printf '\n\e[3;35m%-6s\a\e[m\n' "===============================================================================" ;
+echo
 youtube-dl "$link_to_download"
