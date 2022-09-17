@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 ###################################################################################
 #                                Easy-YouTube-DL                                  #
 #                                                                                 #
@@ -61,13 +62,105 @@ YINVERT=$'\e[43;30m'
 YTCOM='youtube.com'
 YTBE='youtu.be'
 
-function test_youtube_dl () {
-	if ! command -v youtube-dl &> /dev/null ; then
-		# We don't have it. Do we have Python as a requirement?
-		$test_python
+# Define the assitant function first. If youtube-dl is installed, this will be the only thing that runs.
+function run_easy_ytdl () {
+	# Save file to the desktop, because your download folder is probably also cluttered.
+	cd ~/Desktop
+	clear
+	printf '\e[3;32m%-6s\a\e[m\n' "============================= Easy YouTube-DL ================================="
+	printf '%s\n' "Please paste the YouTube URL you would like to download below."
+	printf '%s\n\n' "Must be \"$RED$YTCOM$NOCOLOR\", not \"$RED$YTBE$NOCOLOR\". The file will be saved to $BLUE$HOME/Desktop$NOCOLOR."
+	printf '%s' $YELLOW "URL:$NOCOLOR "
+	read link_to_download
+	printf '\n\e[3;32m%-6s\a\e[m\n' "==============================================================================="
+	youtube-dl "$link_to_download"
+}
+
+# Define install functions so they can be called below.
+
+function install_ytdl_brew () {
+	# Easiest alternative install method is Homebrew, which we've confirmed is present.
+	brew install youtube-dl &&
+	printf '\n\e[0;32m%s\e[0m\n' "Congratulations! youtube-dl is now installed. Would you like to download a video now? (yes/no)"
+	read now_or_later
+	case $now_or_later in
+		y|Y|yes|Yes|YES) run_easy_ytdl
+			;;
+		*) echo "Goodbye!"
+			exit 0
+			;;
+	esac
+}
+
+function install_ytdl_curl () {
+	# First recommended install method is curl, which we've confirmed is present.
+	sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl &&
+	printf '\n\e[1;34m%s\e[0m\n' "Compare this SHA256 hash to the published one at https://ytdl-org.github.io/youtube-dl/download.html" &&
+	shasum -a 256 /usr/local/bin/youtube-dl &&
+	printf '\n\e[0;32m%s\e[0m\n' "Congratulations! youtube-dl is now installed. Would you like to download a video now? (yes/no)"
+	read now_or_later
+	case $now_or_later in
+		y|Y|yes|Yes|YES) run_easy_ytdl
+			;;
+		*) echo "Goodbye!"
+			exit 0
+			;;
+	esac
+}
+
+function install_ytdl_wget () {
+	# We didn't have curl, proceding with wget as second recommended install method.
+	sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl &&
+	printf '\n\e[1;34m%s\e[0m\n' "Compare this SHA256 hash to the published one at https://ytdl-org.github.io/youtube-dl/download.html" &&
+	shasum -a 256 /usr/local/bin/youtube-dl &&
+	printf '\n\e[0;32m%s\e[0m\n' "Congratulations! youtube-dl is now installed. Would you like to download a video now? (yes/no)"
+	read now_or_later
+	case $now_or_later in
+		y|Y|yes|Yes|YES) run_easy_ytdl
+			;;
+		*) echo "Goodbye!"
+			exit 0
+			;;
+	esac
+}
+
+function install_ytdl_pip () {
+	# We did not have curl or wget, proceeding with pip as third recommended install method.
+	sudo pip install --upgrade youtube-dl &&
+	printf '\n\e[0;32m%s\e[0m\n' "Congratulations! youtube-dl is now installed. Would you like to download a video now? (yes/no)"
+	read now_or_later
+	case $now_or_later in
+		y|Y|yes|Yes|YES) run_easy_ytdl
+			;;
+		*) echo "Goodbye!"
+			exit 0
+			;;
+	esac
+}
+
+function test_install_methods () {
+if ! command -v brew &> /dev/null; then
+	# We don't have Homebrew as the easiest install option.
+	if ! command -v curl &> /dev/null ; then
+		# We can't use curl to install.
+		if ! command -v wget &> /dev/null ; then
+			# We also can't use wget to install.
+			if ! command -v pip &> /dev/null ; then
+				printf '%s\n' "Sorry, we seem to have none of four possible install methods."
+				printf '%s\n' "Please see additional info at $GREEN https://yt-dl.org/"
+				exit 0
+			else
+				install_ytdl_pip
+			fi
+		else
+			install_ytdl_wget
+		fi
 	else
-		$run_easy_ytdl
+		install_ytdl_curl
 	fi
+else
+	install_ytdl_brew
+fi
 }
 
 function test_python () {
@@ -88,7 +181,7 @@ function test_python () {
 			read -p "(yes/no): " "get_youtube_dl"
 			case "$get_youtube_dl" in
 				y|Y|yes|Yes|YES) echo "Proceeding..."
-					$test_install_methods
+					test_install_methods
 					;;
 				*) exit 0
 					;;
@@ -99,100 +192,12 @@ function test_python () {
 	fi
 }
 
-function test_install_methods () {
-if ! command -v brew &> /dev/null; then
-	# We don't have Homebrew as the easiest install option.
-	if ! command -v curl &> /dev/null ; then
-		# We can't use curl to install.
-		if ! command -v wget &> /dev/null ; then
-			# We also can't use wget to install.
-			if ! command -v pip &> /dev/null ; then
-				printf '%s\n' "Sorry, we seem to have none of four possible install methods."
-				printf '%s\n' "Please see additional info at $GREEN https://yt-dl.org/"
-				exit 0
-			else
-				$install_ytdl_pip
-			fi
-		else
-			$install_ytdl_wget
-		fi
+function test_youtube_dl () {
+	if ! command -v youtube-dl &> /dev/null ; then
+		# We don't have it. Do we have Python as a requirement?
+		test_python
 	else
-		$install_ytdl_curl
+		run_easy_ytdl
 	fi
-else
-	$install_ytdl_brew
-fi
 }
-
-function install_ytdl_brew () {
-	# Easiest alternative install method is Homebrew, which we've confirmed is present.
-	brew install youtube-dl &&
-	printf '\n\e[0;32m%s\e[0m\n' "Congratulations! youtube-dl is now installed. Would you like to download a video now? (yes/no)"
-	read now_or_later
-	case $now_or_later in
-		y|Y|yes|Yes|YES) $run_easy_ytdl
-			;;
-		*) Goodbye!
-			exit 0
-			;;
-	esac
-}
-
-function install_ytdl_curl () {
-	# First recommended install method is curl, which we've confirmed is present.
-	sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl &&
-	printf '\n\e[1;34m%s\e[0m\n' "Compare this SHA256 hash to the published one at https://ytdl-org.github.io/youtube-dl/download.html" &&
-	shasum -a 256 /usr/local/bin/youtube-dl &&
-	printf '\n\e[0;32m%s\e[0m\n' "Congratulations! youtube-dl is now installed. Would you like to download a video now? (yes/no)"
-	read now_or_later
-	case $now_or_later in
-		y|Y|yes|Yes|YES) $run_easy_ytdl
-			;;
-		*) Goodbye!
-			exit 0
-			;;
-	esac
-}
-
-function install_ytdl_wget () {
-	# We didn't have curl, proceding with wget as second recommended install method.
-	sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl &&
-	printf '\n\e[1;34m%s\e[0m\n' "Compare this SHA256 hash to the published one at https://ytdl-org.github.io/youtube-dl/download.html" &&
-	shasum -a 256 /usr/local/bin/youtube-dl &&
-	printf '\n\e[0;32m%s\e[0m\n' "Congratulations! youtube-dl is now installed. Would you like to download a video now? (yes/no)"
-	read now_or_later
-	case $now_or_later in
-		y|Y|yes|Yes|YES) $run_easy_ytdl
-			;;
-		*) Goodbye!
-			exit 0
-			;;
-	esac
-}
-
-function install_ytdl_pip () {
-	# We did not have curl or wget, proceeding with pip as third recommended install method.
-	sudo pip install --upgrade youtube-dl &&
-	printf '\n\e[0;32m%s\e[0m\n' "Congratulations! youtube-dl is now installed. Would you like to download a video now? (yes/no)"
-	read now_or_later
-	case $now_or_later in
-		y|Y|yes|Yes|YES) $run_easy_ytdl
-			;;
-		*) Goodbye!
-			exit 0
-			;;
-	esac
-}
-
-function run_easy_ytdl () {
-	# Save file to the desktop, because your download folder is probably also cluttered.
-	cd ~/Desktop
-	clear
-	printf '\e[3;32m%-6s\a\e[m\n' "============================= Easy YouTube-DL ================================="
-	printf '%s\n' "Please paste the YouTube URL you would like to download below."
-	printf '%s\n\n' "Must be \"$RED$YTCOM$NOCOLOR\", not \"$RED$YTBE$NOCOLOR\". The file will be saved to $BLUE$HOME/Desktop$NOCOLOR."
-	printf '%s' $YELLOW "URL:$NOCOLOR "
-	read link_to_download
-	printf '\n\e[3;32m%-6s\a\e[m\n' "==============================================================================="
-	youtube-dl "$link_to_download"
-}
+test_youtube_dl
