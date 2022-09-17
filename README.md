@@ -1,6 +1,6 @@
 # Easy-YTDL
 
-[Easy-YTDL icon by Papirus Development Team, GPL 3.0](Icon/Papirus-Team-Papirus-Apps-Youtube-dl.png)
+[Easy-YTDL icon by Papirus Development Team, GPL 3.0](https://github.com/VidiotGeek/Easy-YouTube-DL/blob/main/Icon/Papirus-Team-Papirus-Apps-Youtube-dl.png)
 
 ## About
 This started as a simple script to make the great command line utility [_youtube-dl_](https://yt-dl.org/) easier to use for GUI-centric CLI-phobic users. Folks who wouldn't have a _clue_ what to do with a terminal window in front of them. The idea being, if the sight of a command prompt doesn't **immediately** scare them away, all the user would have to do is paste the URL into the prompt when asked. No having to remember to put it in "quotes" or otherwise having to understand anything about escape characters for the "?" and "=" present in URLs.
