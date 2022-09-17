@@ -15,7 +15,7 @@ I hope you find it useful in some way.
 **Thanks!** \
 Matt Bailey
 
-# Icon
+## Icon
 Icon by [Papirus Development Team](https://github.com/PapirusDevelopmentTeam)\
 Sourced from [IconArchive](https://iconarchive.com/show/papirus-apps-icons-by-papirus-team/youtube-dl-icon.html)
 
