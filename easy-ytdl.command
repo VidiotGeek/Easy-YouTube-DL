@@ -66,28 +66,28 @@ YTBE='youtu.be'
 # Define the assitant function first. If youtube-dl is installed, this will be the only thing that runs.
 function run_easy_ytdl () {
 	# Make a save folder on the desktop, because your download folder is probably also cluttered.
-	SAVE_DIR=$HOME/Desktop/YTDL-Downloads
-	if [ ! -d $SAVE_DIR ]; then
-		mkdir $SAVE_DIR && cd $SAVE_DIR
+	"SAVE_DIR=${HOME}/Desktop/YTDL-Downloads"
+	if [[ ! -d "${SAVE_DIR}" ]]; then
+		mkdir "${SAVE_DIR}" && cd "${SAVE_DIR}" || exit
 	else
-		cd $SAVE_DIR
+		cd "${SAVE_DIR}" || exit
 	fi
 	clear
 	printf '%-6s\n' "${GREENITALIC}============================= Easy YouTube-DL =================================${NOCOLOR}"
 	printf '%s\n' "Please paste the YouTube URL you would like to download at the prompt below."
-	printf '%s\n' "The link must be to \"$RED$YTCOM$NOCOLOR\", and not \"$RED$YTBE$NOCOLOR\" in order to work."
-	printf '%s\n\n' "Your file will be saved to $BLUE$SAVE_DIR$NOCOLOR."
+	printf '%s\n' "The link must be to \"${RED}${YTCOM}${NOCOLOR}\", and not \"${RED}${YTBE}${NOCOLOR}\" in order to work."
+	printf '%s\n\n' "Your file will be saved to ${BLUE}$$SAVE_DIR${NOCOLOR}."
 	printf '%s' "${YELLOW}URL:${NOCOLOR} "
-	read link_to_download
+	read -r link_to_download
 	printf '\n%-6s\n' "${GREENITALIC}===============================================================================${NOCOLOR}"
-	youtube-dl "$link_to_download" && printf '\n\n%s\n\n' "${PURPLE}You may now close this window.${NOCOLOR}" && open $SAVE_DIR && exit 0
+	youtube-dl "${link_to_download}" && printf '\n\n%s\n\n' "${PURPLE}You may now close this window.${NOCOLOR}" && open "${SAVE_DIR}" && exit 0
 }
 
 # After installation, ask user if they want to download a video now.
 function ask_download_video () {
 	printf '%s\n' "Would you like to download a video now? (yes/no) "
-	read now_or_later
-	case $now_or_later in
+	read -r now_or_later
+	case ${now_or_later} in
 		y|Y|yes|Yes|YES) run_easy_ytdl
 			;;
 		*) printf '%s\n\n' "The next time you run this script, we will jump straight to the download prompt. Goodbye!"
@@ -103,12 +103,12 @@ function run_checksum () {
 	shasum -a 256 /usr/local/bin/youtube-dl &&
 	printf '\n%s\n' "If the checksums do not match, the download may be incomplete, corrupt, or modified. Choosing ${RED}\"NO\"${NOCOLOR} will remove the copy of youtube-dl that we just installed."
 	function confirm_checksum () {
-		printf '%s' "Do they match? (yes/no/skip): " && read matched
-		case $matched in
+		printf '%s' "Do they match? (yes/no/skip): " && read -r matched
+		case ${matched} in
 			y|Y|yes|Yes|YES) printf '\n%s\n' "${GREEN}Congratulations! youtube-dl is now installed.${NOCOLOR}"
 				ask_download_video
 				;;
-			n|N|no|No|NO) printf '\n%s\n' "$(RED)Removing youtube-dl executable\!${NOCOLOR}" && rm -vi /usr/local/bin/youtube-dl && exit 0
+			n|N|no|No|NO) printf '\n%s\n' "${RED}Removing youtube-dl executable\!${NOCOLOR}" && rm -vi /usr/local/bin/youtube-dl && exit 0
 				;;
 			s|S|skip|Skip|SKIP) printf '\n%s\n' "${YELLOW}Skipping verification.${NOCOLOR} youtube-dl is now installed."
 				ask_download_video
@@ -182,8 +182,8 @@ function test_python () {
 		# We also don't have python. Prompt for Python install.
 		printf '%s\n' "Sorry, Python 2.6 or later is a requirement for youtube-dl and this system doesn't have it"
 		printf '%s' "Do you want to manually install it from www.python.org and try this script again? (yes/no): "
-		read get_python
-		case $get_python in
+		read -r get_python
+		case ${get_python} in
 			y|Y|yes|Yes|YES) open "https://www.python.org/downloads/" && exit 0
 				;;
 			*) exit 1
@@ -191,10 +191,10 @@ function test_python () {
 		esac
 	else
 		# We've confirmed Python is present. Can we write to the default install location?
-		if -w /usr/local/bin ; then
+		if [[ -w /usr/local/bin ]] ; then
 			printf '%s' "Sorry, youtube-dl could not be found. Would you like to download and install it? (yes/no): "
-			read get_youtube_dl
-			case "$get_youtube_dl" in
+			read -r get_youtube_dl
+			case "${get_youtube_dl}" in
 				y|Y|yes|Yes|YES) printf '%s\n\n' "Proceeding..."
 					test_install_methods
 					;;
@@ -202,7 +202,7 @@ function test_python () {
 					;;
 			esac
 		else
-			printf '%s\n' "Sorry, the user $USER is not able to write to the install location at /usr/local/bin."
+			printf '%s\n' "Sorry, the user ${USER} is not able to write to the install location at /usr/local/bin."
 			printf '%s\n' "Login as an administrator and try again." && exit 1
 		fi
 	fi
