@@ -48,16 +48,16 @@
 
 # Define some ANSI color code variables.
 NOCOLOR=$'\e[0m'
-WHITE=$'\e1;37m'
-GRAY=$'\e[0;37m'
+# WHITE=$'\e1;37m'
+# GRAY=$'\e[0;37m'
 RED=$'\e[0;31m'
-YELLOW=$'\e[0;33m'
-BLUE=$'\e[1;34m'
 GREEN=$'\e[0;32m'
 GREENITALIC=$'\e[3;32m'
-CYAN=$'\e[0;36m'
+BLUE=$'\e[1;34m'
+YELLOW=$'\e[0;33m'
+# CYAN=$'\e[0;36m'
 PURPLE=$'\e[0;35m'
-YINVERT=$'\e[43;30m'
+# YINVERT=$'\e[43;30m'
 
 # Define URL variables for tricky printf formatting.
 YTCOM='youtube.com'
@@ -66,7 +66,7 @@ YTBE='youtu.be'
 # Define the assitant function first. If youtube-dl is installed, this will be the only thing that runs.
 function run_easy_ytdl () {
 	# Make a save folder on the desktop, because your download folder is probably also cluttered.
-	"SAVE_DIR=${HOME}/Desktop/YTDL-Downloads"
+	SAVE_DIR="${HOME}/Desktop/YTDL-Downloads"
 	if [[ ! -d "${SAVE_DIR}" ]]; then
 		mkdir "${SAVE_DIR}" && cd "${SAVE_DIR}" || exit
 	else
