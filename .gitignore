@@ -1,0 +1,4 @@
+## Don't track VS Code plugin files.
+.trunk
+.markdownlint.yaml
+.shellcheckrc
